@@ -67,9 +67,9 @@ var UNICODE_CHESS_PIECES = [
     "♚", "♛", "♜", "♝", "♞", "♟",
 ]
 Piece.prototype.getUnicodeSymbol = function () {
-    return piece.owner == PLAYER_1 ?
-        UNICODE_CHESS_PIECES[piece.type] :
-        UNICODE_CHESS_PIECES[piece.type + 6];
+    return this.owner == PLAYER_1 ?
+        UNICODE_CHESS_PIECES[this.type] :
+        UNICODE_CHESS_PIECES[this.type + 6];
 }
 
 
@@ -83,15 +83,19 @@ function Player (id) {
     this.dir = this.id == PLAYER_1 ? 1 : -1;
 }
 Player.prototype.updateThreat = function (board) {
+    var threat = this.threat;
+    // var pieces = this.pieces;
+    var dir    = this.dir;
+
     for (var i = 0; i < 64; ++i)
         this.threat[i] = 0;
 
     for (var i = this.pieces.length; i --> 0; ) {
         var piece = this.pieces[i];
         switch (piece.type) {
-            case KING:  paintKing(piece); break;
-            case QUEEN: paintRook(piece), paintBishop(piece); break;
-            case ROOK:  paintRook(piece); break;
+            case KING:   paintKing(piece); break;
+            case QUEEN:  paintRook(piece), paintBishop(piece); break;
+            case ROOK:   paintRook(piece); break;
             case BISHOP: paintBishop(piece); break;
             case KNIGHT: paintKnight(piece); break;
             case PAWN:   paintPawn(piece); break;
@@ -139,15 +143,15 @@ Player.prototype.updateThreat = function (board) {
         paintDir(2, 1);
     }
     function paintPawn   (piece) {
-        if (piece.x >= 0) paintCell(piece.x-1, piece.y + this.dir * 2);
-        if (piece.x <= 7) paintCell(piece.x+1, piece.y + this.dir * 2);
+        if (piece.x >= 0) paintCell(piece.x-1, piece.y + dir * 2);
+        if (piece.x <= 7) paintCell(piece.x+1, piece.y + dir * 2);
     }
     function maybePaintCell (x,y) {
         if (!(x < 0 || x > 7 || y < 0 || y > 7))
             paintCell(x, y);
     }
     function paintCell   (x,y) {
-        this.threat[x + (y << 3)]++;
+        ++threat[(x + (y << 3))];
     }
 }
 
@@ -205,6 +209,8 @@ Board.prototype.draw = function (ctx) {
         return "rgb(0,0,0)";
     }
 
+
+    var colors = ["rgb(255,255,255)","rgb(0,0,0)"];
     for (var i = 0; i < 64; ++i) {
         // Cell position (grid)
         var x = i & 7;
@@ -231,32 +237,46 @@ function init () {
     if (!canvas || !ctx)
         window.alert("Could not get canvas / 2d context");
 
-    cb.updateThreat();
-    cb.draw(ctx);
+    redraw();
+    // cb.updateThreat();
+    // cb.draw(ctx);
 
     canvas.addEventListener("mousedown", onMouseDown, false);
+
+    function onMouseDown (evt) {
+        xy = cb.getIndexPos(canvas, evt);
+
+        // ...
+
+        redraw();
+    }
+
+    function redraw () {
+        cb.updateThreat();
+        cb.draw(ctx);
+    }
 }
 
-var prevXY = 0;
-var prevPiece = 'R';
+// var prevXY = 0;
+// var prevPiece = 'R';
 
-function onMouseDown (evt) {
-    xy = getBoardPos(document.getElementById("canvas"), evt);
-    // if (prevXY >= 0)
-    //      cb[xy] = prevPiece;
-    // if (xy >= 0)
-    //       prevPiece = cb[xy];
-    // prevXY = xy;
+// function onMouseDown (evt) {
+//     xy = getBoardPos(document.getElementById("canvas"), evt);
+//     // if (prevXY >= 0)
+//          // cb[xy] = prevPiece;
+//     // if (xy >= 0)
+//           // prevPiece = cb[xy];
+//     // prevXY = xy;
 
-    // if (cb[xy] == ' ')
-    //     cb[xy] = 'P';
-    // else
-    //     cb[xy] = ' ';
+//     // if (cb[xy] == ' ')
+//     //     cb[xy] = 'P';
+//     // else
+//     //     cb[xy] = ' ';
 
-    // draw();
+//     // draw();
 
-    // window.alert("Mousedown: "+xy+" prevPiece: "+prevPiece+" cp:"+cb[xy]);
-}
+//     // window.alert("Mousedown: "+xy+" prevPiece: "+prevPiece+" cp:"+cb[xy]);
+// }
 
 function getBoardPos (canvas, evt) {
     var rect = canvas.getBoundingClientRect();
