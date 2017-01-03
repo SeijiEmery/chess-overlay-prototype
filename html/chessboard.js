@@ -54,13 +54,13 @@ Piece.fromAscii = function (chr, x, y) {
     return new Piece(owner, piece, x, y);
 }
 var ASCII_CHESS_PIECES = [
-    'K', 'Q', 'R', 'B', 'N', 'P',
     'k', 'q', 'r', 'b', 'n', 'p',
+    'K', 'Q', 'R', 'B', 'N', 'P',
 ]
 Piece.prototype.getAsciiSymbol = function () {
-    return piece.owner == PLAYER_1 ?
-        ASCII_CHESS_PIECES[piece.type] :
-        ASCII_CHESS_PIECES[piece.type + 6];
+    return this.owner == PLAYER_1 ?
+        ASCII_CHESS_PIECES[this.type] :
+        ASCII_CHESS_PIECES[this.type + 6];
 }
 var UNICODE_CHESS_PIECES = [ 
     "♔", "♕", "♖", "♗", "♘", "♙",
@@ -102,49 +102,53 @@ Player.prototype.updateThreat = function (board) {
         }
     }
     function paintKing   (piece) {
-        maybePaintCell(piece.x + 1, piece.y + 1);
-        maybePaintCell(piece.x    , piece.y + 1);
-        maybePaintCell(piece.x - 1, piece.y + 1);
-        maybePaintCell(piece.x - 1, piece.y    );
-        maybePaintCell(piece.x - 1, piece.y - 1);
-        maybePaintCell(piece.x    , piece.y - 1);
-        maybePaintCell(piece.x + 1, piece.y - 1);
-        maybePaintCell(piece.x + 1, piece.y    );
+        // maybePaintCell(piece.x + 1, piece.y + 1);
+        // maybePaintCell(piece.x    , piece.y + 1);
+        // maybePaintCell(piece.x - 1, piece.y + 1);
+        // maybePaintCell(piece.x - 1, piece.y    );
+        // maybePaintCell(piece.x - 1, piece.y - 1);
+        // maybePaintCell(piece.x    , piece.y - 1);
+        // maybePaintCell(piece.x + 1, piece.y - 1);
+        // maybePaintCell(piece.x + 1, piece.y    );
     }
     function paintRook   (piece) {
         for (var x = piece.x+1; x <= 7; ++x) {
-            paintCell(piece.x, piece.y);
-            if (board.grid[x + (y << 3)]) break;
+            paintCell(x, piece.y);
+            if (board.hasPieceAt(x,y)) break;
+            // if (board.grid[x + (y << 3)]) break;
         }
         for (var x = piece.x-1; x >= 0; --x) {
-            paintCell(piece.x, piece.y);
-            if (board.grid[x + (y << 3)]) break;
+            paintCell(x, piece.y);
+            if (board.hasPieceAt(x,y)) break;
+            // if (board.grid[x + (y << 3)]) break;
         }
         for (var y = piece.y+1; y <= 7; ++y) {
-            paintCell(piece.x, piece.y);
-            if (board.grid[x + (y << 3)]) break;
+            paintCell(piece.x, y);
+            if (board.hasPieceAt(x,y)) break;
+            // if (board.grid[x + (y << 3)]) break;
         }
         for (var y = piece.y-1; y >= 0; --y) {
-            paintCell(piece.x, piece.y);
-            if (board.grid[x + (y << 3)]) break;
+            paintCell(piece.x, y);
+            if (board.hasPieceAt(x,y)) break;
+            // if (board.grid[x + (y << 3)]) break;
         }
     }
     function paintBishop (piece) {
 
     }
     function paintKnight (piece) {
-        function paintDir (dx, dy) {
-            maybePaintCell(piece.x + dx, piece.y + dy);
-            maybePaintCell(piece.x - dx, piece.y + dy);
-            maybePaintCell(piece.x - dx, piece.y - dy);
-            maybePaintCell(piece.x + dx, piece.y - dy);
-        }
-        paintDir(1, 2);
-        paintDir(2, 1);
+        // function paintDir (dx, dy) {
+        //     maybePaintCell(piece.x + dx, piece.y + dy);
+        //     maybePaintCell(piece.x - dx, piece.y + dy);
+        //     maybePaintCell(piece.x - dx, piece.y - dy);
+        //     maybePaintCell(piece.x + dx, piece.y - dy);
+        // }
+        // paintDir(1, 2);
+        // paintDir(2, 1);
     }
     function paintPawn   (piece) {
-        if (piece.x >= 0) paintCell(piece.x-1, piece.y + dir * 2);
-        if (piece.x <= 7) paintCell(piece.x+1, piece.y + dir * 2);
+        // if (piece.x > 0) paintCell(piece.x-1, piece.y + dir);
+        // if (piece.x < 7) paintCell(piece.x+1, piece.y + dir);
     }
     function maybePaintCell (x,y) {
         if (!(x < 0 || x > 7 || y < 0 || y > 7))
@@ -164,45 +168,151 @@ function Board () {
         new Player(PLAYER_2),
     ];
 }
+Board.prototype.hasPieceAt = function (x, y) {
+    return this.grid[(x & 7) + (y << 8)] != null;
+}
+Board.prototype.screenPointToCellIndex = function (x, y) {
+    // TBD
+    return -1;
+}
+Board.prototype.cellIndexToScreenRect = function (index) {
+    // TBD
+    return { x:0,y:0,w:0,h:0 };
+}
 Board.prototype.updateThreat = function () {
     this.players[PLAYER_1].updateThreat(this);
     this.players[PLAYER_2].updateThreat(this);
     return this;
 }
-Board.prototype.setupInitial = function () {
-    var board = [
-        'R','N','B','K','Q','B','N','R',
-        'P','P','P','P','P','P','P','P',
-        ' ',' ',' ',' ',' ',' ',' ',' ',
-        ' ',' ',' ',' ',' ',' ',' ',' ',
-        ' ',' ',' ',' ',' ',' ',' ',' ',
-        ' ',' ',' ',' ',' ',' ',' ',' ',
-        'p','p','p','p','p','p','p','p',
-        'r','n','b','k','q','b','n','r',
-    ];
 
-    // Reset board state
-    this.grid.length = 0;
+// Clear board state (empty; no pieces)
+Board.prototype.clear = function () {
     this.grid.length = 64;
     this.players[PLAYER_1].pieces.length = 0;
     this.players[PLAYER_2].pieces.length = 0;
-
     for (var i = 0; i < 64; ++i) {
-        var piece = Piece.fromAscii(board[i], i & 7, i >> 3);
-        this.grid[i] = piece;
-        if (piece) {
-            this.players[piece.owner].pieces.push(piece);
+        this.grid[i] = null;
+    }
+}
+
+// Load board state from a FEN string.
+// https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
+Board.prototype.loadFEN = function (FEN) {
+    assert(this !== undefined);
+    this.clear();
+
+
+    var players = this.players;
+    var grid    = this.grid;
+
+    function addPiece (player, type, i) {
+        players[player].pieces.push(
+            grid[i] = new Piece(player, type, i & 7, i >> 3));
+    }
+    function parseError (msg, j) {
+        window.alert("Error loading FEN\n\t'"+FEN+"' ("+j+"):\n"+msg);
+    }
+
+    // Parse piece placement (1st field). Field ends at the 1st space.
+    var i = 0, j = 0;
+    for (; i < 64; ++i, ++j) {
+        switch (FEN[j]) {
+            case 'P': addPiece(PLAYER_2, PAWN,   i); break;
+            case 'N': addPiece(PLAYER_2, KNIGHT, i); break;
+            case 'B': addPiece(PLAYER_2, BISHOP, i); break;
+            case 'R': addPiece(PLAYER_2, ROOK,   i); break;
+            case 'Q': addPiece(PLAYER_2, QUEEN,  i); break;
+            case 'K': addPiece(PLAYER_2, KING,   i); break;
+
+            case 'p': addPiece(PLAYER_1, PAWN,   i); break;
+            case 'n': addPiece(PLAYER_1, KNIGHT, i); break;
+            case 'b': addPiece(PLAYER_1, BISHOP, i); break;
+            case 'r': addPiece(PLAYER_1, ROOK,   i); break;
+            case 'q': addPiece(PLAYER_1, QUEEN,  i); break;
+            case 'k': addPiece(PLAYER_1, KING,   i); break;
+
+            // End rank. Check that rank is well-formed and has appropriate number of pieces (8).
+            case '/': 
+                if ((i & 7) != 0) 
+                    parseError("Unbalanced rank "+(i>>3)+": "+(i&7), j); 
+                --i;
+                break;
+            
+            // Skip forward n places
+            case '1': break;
+            case '2': ++i; break;
+            case '3': i += 2; break;
+            case '4': i += 3; break;
+            case '5': i += 4; break;
+            case '6': i += 5; break;
+            case '7': i += 6; break;
+            case '8': i += 7; break;
+            case '9': i += 8; break;
+
+            // End field.
+            case ' ': i = 64; break;
+
+            // Unexpected character(s)
+            default: parseError("Unexpected character while parsing 1st field (piece placement): '"+FEN[j]+"'", j);
         }
     }
+
+    // Parse 2nd field (active color)
+    switch (FEN[++j]) {
+        case 'w': this.activePlayer = PLAYER_1; break;
+        case 'b': this.activePlayer = PLAYER_2; break;
+        default: parseError("Expected 'b' | 'w' for field 2: active player, not '"+FEN[j]+"'", j);
+    }
+    if (FEN[++j] != ' ')
+        parseError("Expected ' ' after field 2, not '"+FEN[j]+"'", j);
+    
+    // Skip remaining fields (castling, en passant, etc).
+
     this.updateThreat();
     return this;
 }
+Board.prototype.setupInitial = function () {
+    this.loadFEN("rnbqkb1r/1p1ppp2/p4np1/P1p4p/R3P3/5N2/1PPP1PPP/1NBQKB1R b KQkq - 1 2");
+    // this.loadFEN("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
+    // this.loadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    return this;
+}
+
+// Board.prototype.setupInitial = function () {
+//     var board = [
+//         'R','N','B','K','Q','B','N','R',
+//         'P','P','P','P','P','P','P','P',
+//         ' ',' ',' ',' ',' ',' ',' ',' ',
+//         ' ',' ',' ',' ',' ',' ',' ',' ',
+//         ' ',' ',' ',' ',' ',' ',' ',' ',
+//         ' ',' ',' ',' ',' ',' ',' ',' ',
+//         'p','p','p','p','p','p','p','p',
+//         'r','n','b','k','q','b','n','r',
+//     ];
+
+//     // Reset board state
+//     this.grid.length = 0;
+//     this.grid.length = 64;
+//     this.players[PLAYER_1].pieces.length = 0;
+//     this.players[PLAYER_2].pieces.length = 0;
+
+//     for (var i = 0; i < 64; ++i) {
+//         var piece = Piece.fromAscii(board[i], i & 7, i >> 3);
+//         this.grid[i] = piece;
+//         if (piece) {
+//             this.players[piece.owner].pieces.push(piece);
+//         }
+//     }
+//     this.updateThreat();
+//     return this;
+// }
 Board.prototype.draw = function (ctx) {
     ctx.font = "40px sans-serif";
 
-    function cellColor (background, threat) {
-        if (threat != 0)
-            return "rgb(255,"+(255-threat * 48)+","+(255-threat*48)+")";
+    function cellColor (background, wt, bt) {
+        if (wt != 0 || bt != 0)
+            return "rgb("+(255-bt*48)+","+(255-wt * 48)+","+(255-wt*48)+")";
+            // return "rgb(255,"+(255-wt * 48)+","+(255-wt*48)+")";
             // return "rgb("+((255 - threat * 32)|0)+",0,0)";
         if (background)
             return "rgb(255,255,255)";
@@ -220,12 +330,15 @@ Board.prototype.draw = function (ctx) {
         var cx = BX + CW * x;
         var cy = BY + CH * y;
 
-        ctx.fillStyle = cellColor((i+y)%2, this.players[PLAYER_1].threat[i]);
+        ctx.fillStyle = cellColor((i+y)%2, 
+            this.players[PLAYER_1].threat[i],
+            this.players[PLAYER_2].threat[i]
+        );
         ctx.fillRect (cx, cy, CW, CH);
 
         if (this.grid[i]) {
             ctx.fillStyle = colors[(i+y)%2];
-            ctx.fillText (this.grid[i].getUnicodeSymbol(), cx + 10, cy + 40);
+            ctx.fillText (this.grid[i].getAsciiSymbol(), cx + 10, cy + 40);
         }
     }
 }
