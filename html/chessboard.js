@@ -420,10 +420,50 @@ function init () {
 
         if (selectedPiece) {
             cb.threatTarget = -1;
+
+            var piece = cb.grid[index];
+            cb.grid[index] = selectedPiece;
+
+            var xx = selectedPiece.x, yy = selectedPiece.y;
+            selectedPiece.x = index & 7;
+            selectedPiece.y = index >> 3;
+
+            if (piece) {
+                piece.x = -10;
+                piece.y = -10;
+            }
+
+            redraw();
+
+            selectedPiece.x = xx;
+            selectedPiece.y = yy;
+            cb.grid[index] = piece;
+
+            if (piece) {
+                piece.x = index & 7;
+                piece.y = index >> 3;
+            }
+
+
         } else {
             cb.threatTarget = index;
+            redraw();
         }
-        redraw();
+
+        // // Place (temp) for interactive overlay
+        // // var piece = index < 0 ? null : cb.grid[index];
+        // var piece = cb.grid[index];  // this is js -- why are we bending over backwards when -1 is undefined? (ie. safe access) 
+        // cb.grid[index] = selectedPiece;
+        // // var piece = null;
+        // // if (selectedPiece && index >= 0) {
+        // //     piece = cb.grid[index];
+        // //     cb.grid[index] = selectedPiece;
+        // // }
+
+        // redraw();
+
+        // // Unplace after drawing
+        // cb.grid[index] = piece;
     }
 
     function redraw () {
