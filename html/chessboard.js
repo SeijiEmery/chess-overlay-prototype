@@ -390,17 +390,39 @@ function init () {
     // cb.updateThreat();
     // cb.draw(ctx);
 
-    // canvas.addEventListener("mousedown", onMouseDown, false);
-    canvas.addEventListener("mousemove", onMouseDown, false);
+    canvas.addEventListener("mousedown", onMouseDown, false);
+    canvas.addEventListener("mousemove", onMouseMove, false);
+
+    var selectedPiece = null;
 
     function onMouseDown (evt) {
         var rect = canvas.getBoundingClientRect();
         x = evt.clientX - rect.left;
         y = evt.clientY - rect.top;
-
         var index = cb.screenPointToCellIndex(x, y);
-        cb.threatTarget = index;
 
+        var newPiece = index < 0 ? null : cb.grid[index];
+
+        cb.grid[index] = selectedPiece;
+        if (selectedPiece) {
+            selectedPiece.x = index & 7;
+            selectedPiece.y = index >> 3;
+        }
+        selectedPiece = newPiece;
+    }
+
+    // Update overlay
+    function onMouseMove (evt) {
+        var rect = canvas.getBoundingClientRect();
+        x = evt.clientX - rect.left;
+        y = evt.clientY - rect.top;
+        var index = cb.screenPointToCellIndex(x, y);
+
+        if (selectedPiece) {
+            cb.threatTarget = -1;
+        } else {
+            cb.threatTarget = index;
+        }
         redraw();
     }
 
