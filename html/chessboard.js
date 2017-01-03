@@ -306,34 +306,6 @@ Board.prototype.setupInitial = function () {
     return this;
 }
 
-// Board.prototype.setupInitial = function () {
-//     var board = [
-//         'R','N','B','K','Q','B','N','R',
-//         'P','P','P','P','P','P','P','P',
-//         ' ',' ',' ',' ',' ',' ',' ',' ',
-//         ' ',' ',' ',' ',' ',' ',' ',' ',
-//         ' ',' ',' ',' ',' ',' ',' ',' ',
-//         ' ',' ',' ',' ',' ',' ',' ',' ',
-//         'p','p','p','p','p','p','p','p',
-//         'r','n','b','k','q','b','n','r',
-//     ];
-
-//     // Reset board state
-//     this.grid.length = 0;
-//     this.grid.length = 64;
-//     this.players[PLAYER_1].pieces.length = 0;
-//     this.players[PLAYER_2].pieces.length = 0;
-
-//     for (var i = 0; i < 64; ++i) {
-//         var piece = Piece.fromAscii(board[i], i & 7, i >> 3);
-//         this.grid[i] = piece;
-//         if (piece) {
-//             this.players[piece.owner].pieces.push(piece);
-//         }
-//     }
-//     this.updateThreat();
-//     return this;
-// }
 Board.prototype.draw = function (ctx) {
     ctx.font = "40px sans-serif";
 
@@ -387,8 +359,6 @@ function init () {
         window.alert("Could not get canvas / 2d context");
 
     redraw();
-    // cb.updateThreat();
-    // cb.draw(ctx);
 
     canvas.addEventListener("mousedown", onMouseDown, false);
     canvas.addEventListener("mousemove", onMouseMove, false);
@@ -443,27 +413,13 @@ function init () {
                 piece.x = index & 7;
                 piece.y = index >> 3;
             }
-
-
         } else {
             cb.threatTarget = index;
+            if (index >= 0 && !cb.grid[index])
+                cb.threatTarget = -1;
+
             redraw();
         }
-
-        // // Place (temp) for interactive overlay
-        // // var piece = index < 0 ? null : cb.grid[index];
-        // var piece = cb.grid[index];  // this is js -- why are we bending over backwards when -1 is undefined? (ie. safe access) 
-        // cb.grid[index] = selectedPiece;
-        // // var piece = null;
-        // // if (selectedPiece && index >= 0) {
-        // //     piece = cb.grid[index];
-        // //     cb.grid[index] = selectedPiece;
-        // // }
-
-        // redraw();
-
-        // // Unplace after drawing
-        // cb.grid[index] = piece;
     }
 
     function redraw () {
@@ -471,87 +427,3 @@ function init () {
         cb.draw(ctx);
     }
 }
-
-// var prevXY = 0;
-// var prevPiece = 'R';
-
-// function onMouseDown (evt) {
-//     xy = getBoardPos(document.getElementById("canvas"), evt);
-//     // if (prevXY >= 0)
-//          // cb[xy] = prevPiece;
-//     // if (xy >= 0)
-//           // prevPiece = cb[xy];
-//     // prevXY = xy;
-
-//     // if (cb[xy] == ' ')
-//     //     cb[xy] = 'P';
-//     // else
-//     //     cb[xy] = ' ';
-
-//     // draw();
-
-//     // window.alert("Mousedown: "+xy+" prevPiece: "+prevPiece+" cp:"+cb[xy]);
-// }
-
-function getBoardPos (canvas, evt) {
-    var rect = canvas.getBoundingClientRect();
-    x = evt.clientX - rect.left;
-    y = evt.clientY - rect.top;
-
-    if (x <= bx || x >= bx + bh || 
-        y <= by || y >= by + bh)
-        return -1;
-
-    cx = ((x - bx) / ch)|0;
-    cy = ((x - by) / ch)|0;
-    return cx + cy * 8;
-}
-
-// function draw () {
-//     updateThreat();
-
-//     var canvas = document.getElementById('canvas');
-//     var ctx = canvas.getContext('2d');
-//     // window.alert(ctx.font)
-//     ctx.font = "40px sans-serif";
-
-//     if (!canvas || !ctx)
-//         window.alert("No canvas support");
-
-    
-
-//     // threat[10] = 1;
-//     // threat[12] = 4;
-//     // threat[16] = 3;
-
-//     function cellColor (background, threat) {
-//         if (threat != 0)
-//             return "rgb(255,"+(255-threat * 48)+","+(255-threat*48)+")";
-//             // return "rgb("+((255 - threat * 32)|0)+",0,0)";
-//         if (background)
-//             return "rgb(255,255,255)";
-//         return "rgb(0,0,0)";
-//     }
-
-//     colors = ["rgb(255,255,255)","rgb(0,0,0)"]
-//     for (var i = 0; i < 64; ++i) {
-//         x = i & 7;
-//         y = i >> 3;
-
-//         // var background = colors[(i+y)%2];
-//         // ctx.fillStyle = background;
-
-//         ctx.fillStyle = cellColor((i+y)%2, threat[i]);
-//         ctx.fillRect (bx + x * cw, by + y * ch, cw, ch);
-
-//         ctx.fillStyle = colors[(i+y)%2];
-//         ctx.fillText (cb[i],//getUnicodeSymbol(cb[i]),
-//             bx + x * cw + 10, by + y * ch + 40);
-//     }
-
-// }
-
-
-
-
-
