@@ -87,11 +87,25 @@ Player.prototype.updateThreat = function (board) {
     // var pieces = this.pieces;
     var dir    = this.dir;
 
-    for (var i = 0; i < 64; ++i)
+    // Clear threat
+    for (var i = 0; i < 64; ++i) {
         this.threat[i] = 0;
+    }
 
-    for (var i = this.pieces.length; i --> 0; ) {
-        var piece = this.pieces[i];
+    if (board.threatTarget != -1) {
+        // Paint threat for a specific piece
+        if (board.grid[board.threatTarget] && 
+            board.grid[board.threatTarget].owner == this.id)
+        {
+            paintPiece(board.grid[board.threatTarget]);
+        }
+    } else {
+        // Paint threat for all pieces
+        for (var i = this.pieces.length; i --> 0; ) {
+            paintPiece(this.pieces[i]);
+        }
+    }
+    function paintPiece (piece) {
         switch (piece.type) {
             case KING:   paintKing(piece); break;
             case QUEEN:  paintRook(piece), paintBishop(piece); break;
@@ -102,53 +116,61 @@ Player.prototype.updateThreat = function (board) {
         }
     }
     function paintKing   (piece) {
-        // maybePaintCell(piece.x + 1, piece.y + 1);
-        // maybePaintCell(piece.x    , piece.y + 1);
-        // maybePaintCell(piece.x - 1, piece.y + 1);
-        // maybePaintCell(piece.x - 1, piece.y    );
-        // maybePaintCell(piece.x - 1, piece.y - 1);
-        // maybePaintCell(piece.x    , piece.y - 1);
-        // maybePaintCell(piece.x + 1, piece.y - 1);
-        // maybePaintCell(piece.x + 1, piece.y    );
+        maybePaintCell(piece.x + 1, piece.y + 1);
+        maybePaintCell(piece.x    , piece.y + 1);
+        maybePaintCell(piece.x - 1, piece.y + 1);
+        maybePaintCell(piece.x - 1, piece.y    );
+        maybePaintCell(piece.x - 1, piece.y - 1);
+        maybePaintCell(piece.x    , piece.y - 1);
+        maybePaintCell(piece.x + 1, piece.y - 1);
+        maybePaintCell(piece.x + 1, piece.y    );
     }
     function paintRook   (piece) {
         for (var x = piece.x+1; x <= 7; ++x) {
             paintCell(x, piece.y);
-            if (board.hasPieceAt(x,y)) break;
-            // if (board.grid[x + (y << 3)]) break;
+            if (board.hasPieceAt(x, piece.y)) break;
         }
         for (var x = piece.x-1; x >= 0; --x) {
             paintCell(x, piece.y);
-            if (board.hasPieceAt(x,y)) break;
-            // if (board.grid[x + (y << 3)]) break;
+            if (board.hasPieceAt(x, piece.y)) break;
         }
         for (var y = piece.y+1; y <= 7; ++y) {
             paintCell(piece.x, y);
-            if (board.hasPieceAt(x,y)) break;
-            // if (board.grid[x + (y << 3)]) break;
+            if (board.hasPieceAt(piece.x, y)) break;
         }
         for (var y = piece.y-1; y >= 0; --y) {
             paintCell(piece.x, y);
-            if (board.hasPieceAt(x,y)) break;
-            // if (board.grid[x + (y << 3)]) break;
+            if (board.hasPieceAt(piece.x, y)) break;
         }
     }
     function paintBishop (piece) {
-
+        function paintDir (dx, dy) {
+            for (var x = piece.x + dx, y = piece.y + dy;
+                !(x < 0 || y < 0 || x > 7 || y > 7);
+                x += dx, y += dy
+            ) {
+                paintCell(x, y);
+                if (board.hasPieceAt(x, y)) break;
+            }
+        }
+        paintDir(+1,+1);
+        paintDir(+1,-1);
+        paintDir(-1,+1);
+        paintDir(-1,-1);
     }
     function paintKnight (piece) {
-        // function paintDir (dx, dy) {
-        //     maybePaintCell(piece.x + dx, piece.y + dy);
-        //     maybePaintCell(piece.x - dx, piece.y + dy);
-        //     maybePaintCell(piece.x - dx, piece.y - dy);
-        //     maybePaintCell(piece.x + dx, piece.y - dy);
-        // }
-        // paintDir(1, 2);
-        // paintDir(2, 1);
+        function paintDir (dx, dy) {
+            maybePaintCell(piece.x + dx, piece.y + dy);
+            maybePaintCell(piece.x - dx, piece.y + dy);
+            maybePaintCell(piece.x - dx, piece.y - dy);
+            maybePaintCell(piece.x + dx, piece.y - dy);
+        }
+        paintDir(1, 2);
+        paintDir(2, 1);
     }
     function paintPawn   (piece) {
-        // if (piece.x > 0) paintCell(piece.x-1, piece.y + dir);
-        // if (piece.x < 7) paintCell(piece.x+1, piece.y + dir);
+        if (piece.x > 0) paintCell(piece.x-1, piece.y + dir);
+        if (piece.x < 7) paintCell(piece.x+1, piece.y + dir);
     }
     function maybePaintCell (x,y) {
         if (!(x < 0 || x > 7 || y < 0 || y > 7))
@@ -167,13 +189,19 @@ function Board () {
         new Player(PLAYER_1),
         new Player(PLAYER_2),
     ];
+    this.threatTarget = -1;
 }
 Board.prototype.hasPieceAt = function (x, y) {
-    return this.grid[(x & 7) + (y << 8)] != null;
+    return !!this.grid[(x & 7) + (y << 3)];
 }
 Board.prototype.screenPointToCellIndex = function (x, y) {
-    // TBD
-    return -1;
+    if (x < BX || x > BX + BW ||
+        y < BY || y > BY + BH)
+        return -1;
+
+    cx = ((x - BX) / CW)|0;
+    cy = ((y - BY) / CH)|0;
+    return (cx & 7) | (cy << 3);
 }
 Board.prototype.cellIndexToScreenRect = function (index) {
     // TBD
@@ -272,9 +300,9 @@ Board.prototype.loadFEN = function (FEN) {
     return this;
 }
 Board.prototype.setupInitial = function () {
-    this.loadFEN("rnbqkb1r/1p1ppp2/p4np1/P1p4p/R3P3/5N2/1PPP1PPP/1NBQKB1R b KQkq - 1 2");
+    // this.loadFEN("rnbqkb1r/1p1ppp2/p4np1/P1p4p/R3P3/5N2/1PPP1PPP/1NBQKB1R b KQkq - 1 2");
     // this.loadFEN("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
-    // this.loadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    this.loadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     return this;
 }
 
@@ -334,6 +362,14 @@ Board.prototype.draw = function (ctx) {
             this.players[PLAYER_1].threat[i],
             this.players[PLAYER_2].threat[i]
         );
+
+        if (i == this.threatTarget)
+            ctx.fillStyle = "rgb(100,100,255)";
+
+        // if (!this.grid[i])
+        // if (!this.hasPieceAt((i&7), (i >> 3)))
+            // ctx.fillStyle = "rgb(100,255,100)";
+
         ctx.fillRect (cx, cy, CW, CH);
 
         if (this.grid[i]) {
@@ -354,12 +390,16 @@ function init () {
     // cb.updateThreat();
     // cb.draw(ctx);
 
-    canvas.addEventListener("mousedown", onMouseDown, false);
+    // canvas.addEventListener("mousedown", onMouseDown, false);
+    canvas.addEventListener("mousemove", onMouseDown, false);
 
     function onMouseDown (evt) {
-        xy = cb.getIndexPos(canvas, evt);
+        var rect = canvas.getBoundingClientRect();
+        x = evt.clientX - rect.left;
+        y = evt.clientY - rect.top;
 
-        // ...
+        var index = cb.screenPointToCellIndex(x, y);
+        cb.threatTarget = index;
 
         redraw();
     }
