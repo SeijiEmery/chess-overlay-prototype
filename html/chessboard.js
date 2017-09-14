@@ -62,10 +62,37 @@ Piece.prototype.getAsciiSymbol = function () {
         ASCII_CHESS_PIECES[this.type] :
         ASCII_CHESS_PIECES[this.type + 6];
 }
+
+// function toUTF16(codePoint) {
+//     var TEN_BITS = parseInt('1111111111', 2);
+//     function u(codeUnit) {
+//         return '\\u'+codeUnit.toString(16).toUpperCase();
+//     }
+
+//     if (codePoint <= 0xFFFF) {
+//         return u(codePoint);
+//     }
+//     codePoint -= 0x10000;
+
+//     // Shift right to get to most significant 10 bits
+//     var leadSurrogate = 0xD800 + (codePoint >> 10);
+
+//     // Mask to get least significant 10 bits
+//     var tailSurrogate = 0xDC00 + (codePoint & TEN_BITS);
+
+//     return u(leadSurrogate) + u(tailSurrogate);
+// }
+// var UNICODE_CHESS_PIECES = [ 
+//     "♔", "♕", "♖", "♗", "♘", "♙",
+//     "♚", "♛", "♜", "♝", "♞", "♟",
+// ].map(String.fromCharCode);
+
 var UNICODE_CHESS_PIECES = [ 
-    "♔", "♕", "♖", "♗", "♘", "♙",
-    "♚", "♛", "♜", "♝", "♞", "♟",
-]
+//  KING    QUEEN   ROOK    BISHOP  KNIGHT  PAWN
+    0x2654, 0x2655, 0x2656, 0x2657, 0x2658, 0x2659, 
+    0x265A, 0x265B, 0x265C, 0x265D, 0x265E, 0x265F,
+].map(String.fromCharCode);
+
 Piece.prototype.getUnicodeSymbol = function () {
     return this.owner == PLAYER_1 ?
         UNICODE_CHESS_PIECES[this.type] :
@@ -314,9 +341,10 @@ Board.prototype.draw = function (ctx) {
             return "rgb("+(255-bt*48)+","+(255-wt * 48)+","+(255-wt*48)+")";
             // return "rgb(255,"+(255-wt * 48)+","+(255-wt*48)+")";
             // return "rgb("+((255 - threat * 32)|0)+",0,0)";
-        if (background)
+        // if (background)
             return "rgb(255,255,255)";
-        return "rgb(0,0,0)";
+        // return "rgb(245,255,245)";
+        // return "rgb(0,0,0)";
     }
 
 
@@ -345,8 +373,8 @@ Board.prototype.draw = function (ctx) {
         ctx.fillRect (cx, cy, CW, CH);
 
         if (this.grid[i]) {
-            ctx.fillStyle = colors[(i+y)%2];
-            ctx.fillText (this.grid[i].getAsciiSymbol(), cx + 10, cy + 40);
+            ctx.fillStyle = colors[1];// colors[(i+y)%2];
+            ctx.fillText (this.grid[i].getUnicodeSymbol(), cx + 4, cy + 35);
         }
     }
 }
